@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Zion Pet</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html,
+    body {
+      width: 150px;
+      height: 150px;
+      background: transparent;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      -webkit-app-region: drag;
+      cursor: grab;
+    }
+
+    body:active {
+      cursor: grabbing;
+    }
+
+    #pet-container {
+      font-size: 13px;
+      line-height: 1.1;
+      white-space: pre;
+      text-align: center;
+      pointer-events: none;
+      font-weight: 500;
+      -webkit-text-stroke: 0.3px rgba(0, 0, 0, 0.5);
+    }
+
+    p {
+      font-size: 12px;
+      color: #cccccc;
+      margin-top: 12px;
+      text-align: center;
+      pointer-events: none;
+      font-weight: 500;
+      -webkit-text-stroke: 0.3px rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="pet-container"></div>
+  <p id="pet-txt">~想睡觉了~</p>
+  <script type="module" src="/src/renderer.ts"></script>
+</body>
+
+</html>

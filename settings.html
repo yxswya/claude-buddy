@@ -16,21 +16,35 @@
       background: #0d1117;
       color: #c9d1d9;
       padding: 16px;
-      min-height: 400px;
     }
 
     .container {
-      max-width: 460px;
+      max-width: 360px;
       margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     h1 {
       font-size: 18px;
       margin-bottom: 16px;
       color: #58a6ff;
+      align-self: flex-start;
+    }
+
+    .pet-preview {
+      width: 120px;
+      height: 80px;
+      image-rendering: pixelated;
+      margin-bottom: 16px;
+      border: 1px solid #30363d;
+      border-radius: 4px;
+      background: #161b22;
     }
 
     .form-group {
+      width: 100%;
       margin-bottom: 16px;
     }
 
@@ -60,7 +74,7 @@
     .button-group {
       display: flex;
       gap: 8px;
-      margin-top: 20px;
+      width: 100%;
     }
 
     button {
@@ -89,65 +103,22 @@
     .btn-save:hover {
       background: #2ea043;
     }
-
-    .species-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      margin-top: 8px;
-    }
-
-    .species-option {
-      background: #161b22;
-      border: 2px solid #30363d;
-      border-radius: 6px;
-      padding: 12px 8px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .species-option:hover {
-      border-color: #58a6ff;
-      background: #1c2128;
-    }
-
-    .species-option.selected {
-      border-color: #58a6ff;
-      background: #1f2937;
-    }
-
-    .species-preview {
-      font-size: 10px;
-      line-height: 1.2;
-      white-space: pre;
-      color: #c9d1d9;
-      margin-bottom: 4px;
-    }
-
-    .species-name {
-      font-size: 11px;
-      color: #8b949e;
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>🐾 宠物设置</h1>
+    <h1>Pet Settings</h1>
+
+    <img class="pet-preview" src="/gifs/idle.gif" alt="pet preview" />
 
     <div class="form-group">
-      <label>选择宠物</label>
-      <div class="species-grid" id="species-grid"></div>
-    </div>
-
-    <div class="form-group">
-      <label for="pet-name">宠物名字</label>
-      <input type="text" id="pet-name" placeholder="给宠物起个名字..." maxlength="20" />
+      <label for="pet-name">Pet Name</label>
+      <input type="text" id="pet-name" placeholder="Name your pet..." maxlength="20" />
     </div>
 
     <div class="button-group">
-      <button id="btn-cancel">取消</button>
-      <button class="btn-save" id="btn-save">保存</button>
+      <button id="btn-cancel">Cancel</button>
+      <button class="btn-save" id="btn-save">Save</button>
     </div>
   </div>
 

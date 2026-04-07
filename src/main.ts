@@ -4,7 +4,7 @@ import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import started from 'electron-squirrel-startup';
 
 // ============================================================================
-// 全局状态
+// Global state
 // ============================================================================
 
 let currentPetState: PetState | null = null;
@@ -20,20 +20,18 @@ interface PetState {
 }
 
 // ============================================================================
-// 宠物配置
+// Pet config
 // ============================================================================
 
 const CONFIG_DIR = path.join(app.getPath('userData'), 'config');
 const PET_CONFIG_FILE = path.join(CONFIG_DIR, 'pet.json');
 
 interface PetConfig {
-  species: string;
   name: string;
   enabled: boolean;
 }
 
 const defaultConfig: PetConfig = {
-  species: 'axolotl',
   name: 'Pickles',
   enabled: true,
 };
@@ -61,7 +59,7 @@ function savePetConfig(config: PetConfig): void {
 }
 
 // ============================================================================
-// 状态文件监听
+// State file watcher
 // ============================================================================
 
 const TEMP_DIR = process.env.TEMP || '/tmp';
@@ -93,7 +91,7 @@ function startStateWatcher(): void {
         }
       }
     } catch (error) {
-      // 静默失败
+      // Silent fail
     }
   }, 500);
 }
@@ -106,11 +104,10 @@ function stopStateWatcher(): void {
 }
 
 // ============================================================================
-// 托盘图标
+// Tray icon
 // ============================================================================
 
 function createTray(): void {
-  // 创建简单的托盘图标 (16x16 白色方块)
   const icon = nativeImage.createFromDataURL(`
     data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAFVJREFUOE9jZKAQMFKon2G4D8RBE8RbOQcTMGxn//f1hYRkYP2H4D8WDEZGNgYP2L4z8DA8I8TG+o2I8Y/JqM/xkYmLk/2NgYAgQYACc0wNPd9s3FAAAAABJRU5ErkJggg==
   `);
@@ -120,27 +117,26 @@ function createTray(): void {
 
   const contextMenu = Menu.buildFromTemplate([
     {
-      label: `宠物: ${config.name}`,
+      label: `Pet: ${config.name}`,
       enabled: false,
     },
     { type: 'separator' },
     {
-      label: '宠物设置',
+      label: 'Settings',
       click: () => openSettingsWindow(),
     },
     { type: 'separator' },
     {
-      label: '退出',
+      label: 'Quit',
       click: () => {
         app.quit();
       },
     },
   ]);
 
-  tray.setToolTip('Zion 宠物');
+  tray.setToolTip('Zion Pet');
   tray.setContextMenu(contextMenu);
 
-  // 双击托盘图标显示/隐藏主窗口
   tray.on('double-click', () => {
     if (mainWindow) {
       if (mainWindow.isVisible()) {
@@ -153,7 +149,7 @@ function createTray(): void {
 }
 
 // ============================================================================
-// 设置窗口
+// Settings window
 // ============================================================================
 
 function openSettingsWindow(): void {
@@ -163,9 +159,9 @@ function openSettingsWindow(): void {
   }
 
   settingsWindow = new BrowserWindow({
-    width: 480,
-    height: 520,
-    title: '宠物设置',
+    width: 400,
+    height: 320,
+    title: 'Pet Settings',
     resizable: false,
     autoHideMenuBar: true,
     webPreferences: {
@@ -175,20 +171,15 @@ function openSettingsWindow(): void {
     },
   });
 
-  // 加载设置页面
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    // 开发环境：使用 vite 开发服务器
     const settingsUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL.replace(/\/$/, '') + '/settings.html';
-    console.log('Loading settings from:', settingsUrl);
     settingsWindow.loadURL(settingsUrl);
   } else {
-    // 生产环境：从打包后的文件加载
     settingsWindow.loadFile(
       path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/settings.html`)
     );
   }
 
-  // 开发模式下打开开发者工具
   if (process.env.NODE_ENV === 'development') {
     settingsWindow.webContents.openDevTools();
   }
@@ -199,10 +190,9 @@ function openSettingsWindow(): void {
 }
 
 // ============================================================================
-// 主窗口创建
+// Main window
 // ============================================================================
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
   app.quit();
 }
@@ -210,13 +200,13 @@ if (started) {
 const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 150,
-    height: 150,
+    height: 130,
     transparent: true,
     frame: false,
     hasShadow: false,
     alwaysOnTop: true,
     resizable: false,
-    skipTaskbar: true, // 从任务栏隐藏
+    skipTaskbar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
@@ -224,7 +214,6 @@ const createWindow = () => {
     },
   });
 
-  // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
@@ -238,19 +227,14 @@ const createWindow = () => {
   });
 };
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
 app.on('ready', () => {
   createWindow();
   createTray();
   startStateWatcher();
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
-  // 不退出，保持在托盘
+  // Stay in tray
 });
 
 app.on('activate', () => {
@@ -259,13 +243,12 @@ app.on('activate', () => {
   }
 });
 
-// 清理
 app.on('before-quit', () => {
   stopStateWatcher();
 });
 
 // ============================================================================
-// IPC 处理
+// IPC handlers
 // ============================================================================
 
 ipcMain.handle('get-current-pet-state', () => {
@@ -279,21 +262,20 @@ ipcMain.handle('get-pet-config', () => {
 ipcMain.handle('save-pet-config', (_event, config: PetConfig) => {
   savePetConfig(config);
 
-  // 更新托盘菜单
   if (tray) {
     const contextMenu = Menu.buildFromTemplate([
       {
-        label: `宠物: ${config.name}`,
+        label: `Pet: ${config.name}`,
         enabled: false,
       },
       { type: 'separator' },
       {
-        label: '宠物设置',
+        label: 'Settings',
         click: () => openSettingsWindow(),
       },
       { type: 'separator' },
       {
-        label: '退出',
+        label: 'Quit',
         click: () => {
           app.quit();
         },
@@ -302,7 +284,6 @@ ipcMain.handle('save-pet-config', (_event, config: PetConfig) => {
     tray.setContextMenu(contextMenu);
   }
 
-  // 通知主窗口重新加载
   if (mainWindow) {
     mainWindow.webContents.send('pet-config-changed', config);
   }

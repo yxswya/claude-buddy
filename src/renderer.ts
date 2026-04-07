@@ -1,6 +1,6 @@
 /**
- * Pet renderer — displays ASCII companion sprite in the Electron window.
- * Uses the shared pet module (sprites.ts + types.ts) for rendering.
+ * Pet renderer — displays GIF companion in the Electron window.
+ * Switches GIF based on Claude Code activity state.
  */
 
 // ============================================================================
@@ -12,7 +12,6 @@ declare global {
     electronAPI: {
       getCurrentPetState: () => Promise<PetState | null>;
       onPetStateUpdate: (callback: (state: PetState) => void) => void;
-      onPetConfigChange: (callback: (config: { species: string }) => void) => void;
     };
   }
 }
@@ -25,138 +24,65 @@ interface PetState {
 }
 
 // ============================================================================
-// Imports from shared pet module
+// GIF state mapping
 // ============================================================================
 
-import type { Species, Eye, Hat, PetBones } from './pet/pet/types';
-import { SPECIES } from './pet/pet/types';
-import { renderSpriteFull } from './pet/pet/sprites';
+const STATE_GIFS: Record<string, string> = {
+  idle: '/gifs/idle.gif',
+  thinking: '/gifs/thinking.gif',
+  working: '/gifs/working.gif',
+  reading: '/gifs/idle.gif',
+  writing: '/gifs/writing.gif',
+  browsing: '/gifs/browsing.gif',
+  talking: '/gifs/talking.gif',
+  success: '/gifs/success.gif',
+  error: '/gifs/error.gif',
+};
+
+const STATE_COLORS: Record<string, string> = {
+  thinking: '#ffae52',
+  working: '#4fc3f7',
+  success: '#81c784',
+  error: '#e57373',
+  idle: '#ffb74d',
+  reading: '#9575cd',
+  writing: '#f06292',
+  browsing: '#64b5f6',
+  talking: '#ffd54f',
+};
 
 // ============================================================================
-// Default bones for manual species selection
+// Display
 // ============================================================================
 
-function makeDefaultBones(species: Species): PetBones {
-  return {
-    species,
-    rarity: 'common',
-    eye: '@' as Eye,
-    hat: 'none' as Hat,
-    shiny: false,
-    stats: { DEBUGGING: 50, PATIENCE: 50, CHAOS: 50, WISDOM: 50, SNARK: 50 },
-  };
-}
+const petGif = document.getElementById('pet-gif') as HTMLImageElement;
+const petTxt = document.getElementById('pet-txt') as HTMLDivElement;
 
-// ============================================================================
-// Rendering
-// ============================================================================
+let currentType = 'idle';
 
-// Pet color cycle
-const petColors = [
-  '#ff8800', // orange
-  '#ff6b6b', // red
-  '#4ecdc4', // cyan
-  '#a66cff', // purple
-  '#ffd93d', // yellow
-  '#6bcb77', // green
-  '#ff9ff3', // pink
-];
-let colorIndex = 0;
+function displayPet(state: PetState | null): void {
+  const type = state?.type || 'idle';
 
-let currentBones: PetBones = makeDefaultBones('axolotl');
-
-function renderPetWeb(frame: number, actionType?: string): string {
-  // Use renderSpriteFull to preserve full 5-line height (for Electron display)
-  const sprite = renderSpriteFull(currentBones, frame);
-
-  // Blink every 10 frames when idle
-  if ((!actionType || actionType === 'idle') && frame % 10 === 0) {
-    return sprite.map(line => line.replaceAll(currentBones.eye, '-')).join('\n');
-  }
-
-  // Success: add stars on first line
-  if (actionType === 'success') {
-    return sprite.map((line, i) => i === 0 ? `✨ ${line}` : line).join('\n');
-  }
-
-  return sprite.join('\n');
-}
-
-function displayPet(frame: number, petState: PetState | null = null): void {
-  const petContainer = document.getElementById('pet-container');
-  const petTxt = document.getElementById('pet-txt');
-
-  if (petContainer) {
-    petContainer.style.color = petColors[colorIndex] || '#ff8800';
-    petContainer.textContent = renderPetWeb(frame, petState?.type);
+  // Switch GIF when state changes (changing src on same GIF restarts it)
+  if (type !== currentType && petGif) {
+    currentType = type;
+    petGif.src = STATE_GIFS[type] || STATE_GIFS.idle!;
   }
 
   if (petTxt) {
-    const colorMap: Record<string, string> = {
-      thinking: '#ffae52',
-      working: '#4fc3f7',
-      success: '#81c784',
-      error: '#e57373',
-      idle: '#ffb74d',
-      reading: '#9575cd',
-      writing: '#f06292',
-      browsing: '#64b5f6',
-      talking: '#ffd54f',
-    };
-
-    if (petState) {
-      petTxt.textContent = petState.message || '发呆中...';
-      petTxt.style.color = colorMap[petState.type] || '#ffae52';
-    } else {
-      petTxt.textContent = '想睡觉了~';
-      petTxt.style.color = petColors[colorIndex] || '#ffb74d';
-    }
+    petTxt.textContent = state?.message || '想睡觉了~';
+    petTxt.style.color = STATE_COLORS[type] || '#ffb74d';
   }
 }
 
 // ============================================================================
-// State management
+// State listeners
 // ============================================================================
 
-let currentPetState: PetState | null = null;
-
-function isValidSpecies(s: string): s is Species {
-  return (SPECIES as readonly string[]).includes(s);
-}
-
-// Color cycle every 3 seconds
-setInterval(() => {
-  colorIndex = (colorIndex + 1) % petColors.length;
-}, 3000);
-
-// Init: load current state
 window.electronAPI?.getCurrentPetState().then((state) => {
-  currentPetState = state;
-  displayPet(0, currentPetState);
+  displayPet(state);
 });
 
-// Listen for state updates
 window.electronAPI?.onPetStateUpdate((state) => {
-  currentPetState = state;
-  displayPet(0, currentPetState);
-});
-
-// Listen for config changes (species selection)
-window.electronAPI?.onPetConfigChange((config: { species: string }) => {
-  if (isValidSpecies(config.species)) {
-    currentBones = makeDefaultBones(config.species);
-  }
-  displayPet(0, currentPetState);
-});
-
-// Animation loop
-let frame = 0;
-const animationInterval = setInterval(() => {
-  frame = (frame + 1) % 1000;
-  displayPet(frame, currentPetState);
-}, 500);
-
-// Cleanup on page unload
-window.addEventListener('beforeunload', () => {
-  clearInterval(animationInterval);
+  displayPet(state);
 });

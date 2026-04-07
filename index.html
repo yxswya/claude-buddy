@@ -15,15 +15,13 @@
       html,
       body {
         width: 150px;
-        height: 150px;
+        height: 130px;
         background: transparent;
         overflow: hidden;
         display: flex;
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
       }
 
       body {
@@ -35,31 +33,32 @@
         cursor: grabbing;
       }
 
-      #pet-container {
-        font-size: 13px;
-        line-height: 1.1;
-        white-space: pre;
-        text-align: center;
+      #pet-gif {
+        width: 120px;
+        height: 80px;
+        image-rendering: pixelated;
         pointer-events: none;
-        font-weight: 500;
-        -webkit-text-stroke: 0.3px rgba(0, 0, 0, 0.5);
       }
 
-      p {
+      #pet-txt {
         font-size: 12px;
         color: #cccccc;
-        margin-top: 12px;
+        margin-top: 4px;
         text-align: center;
         pointer-events: none;
         font-weight: 500;
         -webkit-text-stroke: 0.3px rgba(0, 0, 0, 0.5);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 140px;
       }
     </style>
   </head>
 
   <body>
-    <div id="pet-container"></div>
-    <p id="pet-txt"></p>
+    <img id="pet-gif" src="/gifs/idle.gif" alt="pet" />
+    <div id="pet-txt"></div>
     <script type="module" src="/src/renderer.ts"></script>
   </body>
 </html>

@@ -1,0 +1,224 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" SessionStart"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" SessionEnd"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" UserPromptSubmit"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" PreToolUse"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" PostToolUse"
+          }
+        ]
+      }
+    ],
+    "PostToolUseFailure": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" PostToolUseFailure"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" Stop"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" StopFailure"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" Notification"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" SubagentStart"
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" SubagentStop"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" PreCompact"
+          }
+        ]
+      }
+    ],
+    "PostCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" PostCompact"
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" PermissionDenied"
+          }
+        ]
+      }
+    ],
+    "TaskCreated": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" TaskCreated"
+          }
+        ]
+      }
+    ],
+    "TaskCompleted": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" TaskCompleted"
+          }
+        ]
+      }
+    ],
+    "InstructionsLoaded": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" InstructionsLoaded"
+          }
+        ]
+      }
+    ],
+    "CwdChanged": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" CwdChanged"
+          }
+        ]
+      }
+    ],
+    "ConfigChange": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" ConfigChange"
+          }
+        ]
+      }
+    ],
+    "TeammateIdle": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" TeammateIdle"
+          }
+        ]
+      }
+    ]
+  }
+}

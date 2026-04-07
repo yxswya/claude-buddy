@@ -1,7 +1,7 @@
 /**
- * Zion Pet Generator - 宠物生成器
+ * Pet Companion Generator
  *
- * 使用确定性 PRNG 从 seed 生成宠物属性
+ * Deterministic PRNG-based companion generation, aligned with claude-code/src/buddy/companion.ts
  */
 
 import {
@@ -10,8 +10,6 @@ import {
   type StoredPet,
   type Species,
   type Rarity,
-  type Eye,
-  type Hat,
   type StatName,
   SPECIES,
   RARITIES,
@@ -24,7 +22,7 @@ import {
 } from './types';
 
 // ============================================================================
-// PRNG - Mulberry32
+// PRNG — Mulberry32 (matches claude-code/src/buddy/companion.ts)
 // ============================================================================
 
 function mulberry32(seed: number): () => number {
@@ -39,7 +37,6 @@ function mulberry32(seed: number): () => number {
 }
 
 function hashString(s: string): number {
-  // 使用 Bun 的内置 hash（如果可用）
   if (typeof Bun !== 'undefined') {
     return Number(BigInt(Bun.hash(s)) & 0xffffffffn);
   }
@@ -57,7 +54,7 @@ function pick<T>(rng: () => number, arr: readonly T[]): T {
 }
 
 // ============================================================================
-// 属性生成
+// Stat rolling
 // ============================================================================
 
 const RARITY_FLOOR: Record<Rarity, number> = {
@@ -98,10 +95,10 @@ function rollStats(rng: () => number, rarity: Rarity): Record<StatName, number> 
 }
 
 // ============================================================================
-// 滚动生成
+// Roll generation (core logic matches claude-code exactly)
 // ============================================================================
 
-const SALT = 'zion-pet-2026-v1';
+const SALT = 'friend-2026-401';
 
 export type Roll = {
   bones: PetBones;
@@ -115,13 +112,13 @@ function rollFrom(rng: () => number): Roll {
     species: pick(rng, SPECIES),
     eye: pick(rng, EYES),
     hat: rarity === 'common' ? 'none' : pick(rng, HATS),
-    shiny: rng() < 0.01, // 1% 闪光概率
+    shiny: rng() < 0.01,
     stats: rollStats(rng, rarity),
   };
   return { bones, inspirationSeed: Math.floor(rng() * 1e9) };
 }
 
-// 缓存
+// Cache deterministic roll for same userId
 let rollCache: { key: string; value: Roll } | undefined;
 
 export function roll(userId: string): Roll {
@@ -137,59 +134,21 @@ export function rollWithSeed(seed: string): Roll {
 }
 
 export function generateSeed(): string {
-  return `zion-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  return `rehatch-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
 // ============================================================================
-// 宠物存取
+// Buddy-specific: pet persistence via Electron userData
 // ============================================================================
 
-const CONFIG_FILE = '/Users/mac/.claude/config.json';
-
-function readConfig(): Record<string, unknown> {
-  try {
-    const fs = require('fs');
-    if (fs.existsSync(CONFIG_FILE)) {
-      return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf8'));
-    }
-  } catch {}
-  return {};
-}
-
-function writeConfig(config: Record<string, unknown>): void {
-  try {
-    const fs = require('fs');
-    fs.writeFileSync(CONFIG_FILE, JSON.stringify(config, null, 2));
-  } catch {}
-}
-
-export function getPet(): Pet | undefined {
-  const config = readConfig();
-  const stored = config.zionPet as StoredPet | undefined;
-  if (!stored) return undefined;
-
-  const seed = stored.seed || 'default-seed';
+export function getPetFromSeed(stored: StoredPet): Pet {
+  const seed = stored.seed ?? 'default-seed';
   const { bones } = rollWithSeed(seed);
+  // bones last so stale bones fields in old-format configs get overridden
   return { ...stored, ...bones };
 }
 
-export function savePet(pet: StoredPet): void {
-  const config = readConfig();
-  config.zionPet = pet;
-  writeConfig(config);
-}
-
-export function deletePet(): void {
-  const config = readConfig();
-  delete config.zionPet;
-  writeConfig(config);
-}
-
-// ============================================================================
-// 孵化新宠物
-// ============================================================================
-
-export function hatchPet(userId?: string): Pet {
+export function hatchPet(_userId?: string): Pet {
   const seed = generateSeed();
   const { bones } = rollWithSeed(seed);
 
@@ -203,14 +162,8 @@ export function hatchPet(userId?: string): Pet {
     hatchedAt: Date.now(),
   };
 
-  savePet(stored);
-
   return { ...stored, ...bones };
 }
-
-// ============================================================================
-// 获取默认名字和性格
-// ============================================================================
 
 export function getDefaultName(species: Species): string {
   return SPECIES_NAMES[species];

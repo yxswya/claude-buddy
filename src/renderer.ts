@@ -1,86 +1,159 @@
 /**
- * This file will automatically be loaded by vite and run in the "renderer" context.
- * To learn more about the differences between the "main" and the "renderer" context in
- * Electron, visit:
- *
- * https://electronjs.org/docs/tutorial/process-model
- *
- * By default, Node.js integration in this file is disabled. When enabling Node.js integration
- * in a renderer process, please be aware of potential security implications. You can read
- * more about security risks here:
- *
- * https://electronjs.org/docs/tutorial/security
- *
- * To enable Node.js integration in this file, open up `main.ts` and enable the `nodeIntegration`
- * flag:
- *
- * ```
- *  // Create the browser window.
- *  mainWindow = new BrowserWindow({
- *    width: 800,
- *    height: 600,
- *    webPreferences: {
- *      nodeIntegration: true
- *    }
- *  });
- * ```
+ * Pet renderer — displays ASCII companion sprite in the Electron window.
+ * Uses the shared pet module (sprites.ts + types.ts) for rendering.
  */
 
-export type Species =
-  | 'duck' | 'goose' | 'blob' | 'cat' | 'dragon' | 'octopus'
-  | 'owl' | 'penguin' | 'turtle' | 'snail' | 'ghost' | 'axolotl'
-  | 'capybara' | 'cactus' | 'robot' | 'rabbit' | 'mushroom' | 'chonk';
+// ============================================================================
+// Type declarations for Electron IPC
+// ============================================================================
 
-export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-export type Eye = '·' | '✦' | '×' | '◉' | '@' | '°';
-export type Hat = 'none' | 'crown' | 'tophat' | 'propeller' | 'halo' | 'wizard' | 'beanie' | 'tinyduck';
-export type Status = 'idle' | 'thinking' | 'responding' | 'tool_use' | 'waiting';
-
-export interface Pet {
-  name: string;
-  species: Species;
-  rarity: Rarity;
-  eye: Eye;
-  hat: Hat;
+declare global {
+  interface Window {
+    electronAPI: {
+      getCurrentPetState: () => Promise<PetState | null>;
+      onPetStateUpdate: (callback: (state: PetState) => void) => void;
+      onPetConfigChange: (callback: (config: { species: string }) => void) => void;
+    };
+  }
 }
 
-// Render pet for web
-function renderPetWeb(frame: number): string {
-  const frames = [
-    ['}~(______)~{', '}~(E .. E)~{', '  ( .--. )  ', '  (_/  \\_)  '],
-    ['~}(______){~', '~}(E .. E){~', '  ( .--. )  ', '  (_/  \\_)  '],
-    ['}~(______)~{', '}~(E .. E)~{', '  (  --  )  ', '  ~_/  \\_~  '],
-  ];
-  const sprite = frames?.[frame % frames.length] ?? [];
-  let lines = sprite.map(line => line.replace(/E/g, '@'));
-
-  return lines.join('\n');
+interface PetState {
+  timestamp: string;
+  type: 'thinking' | 'working' | 'success' | 'error' | 'idle' | 'reading' | 'writing' | 'browsing' | 'talking';
+  message: string;
+  details?: Record<string, unknown>;
 }
 
-// Display pet and status
-function displayPet(frame: number): void {
+// ============================================================================
+// Imports from shared pet module
+// ============================================================================
+
+import type { Species, Eye, Hat, PetBones } from './pet/pet/types';
+import { SPECIES } from './pet/pet/types';
+import { renderSpriteFull } from './pet/pet/sprites';
+
+// ============================================================================
+// Default bones for manual species selection
+// ============================================================================
+
+function makeDefaultBones(species: Species): PetBones {
+  return {
+    species,
+    rarity: 'common',
+    eye: '@' as Eye,
+    hat: 'none' as Hat,
+    shiny: false,
+    stats: { DEBUGGING: 50, PATIENCE: 50, CHAOS: 50, WISDOM: 50, SNARK: 50 },
+  };
+}
+
+// ============================================================================
+// Rendering
+// ============================================================================
+
+// Pet color cycle
+const petColors = [
+  '#ff8800', // orange
+  '#ff6b6b', // red
+  '#4ecdc4', // cyan
+  '#a66cff', // purple
+  '#ffd93d', // yellow
+  '#6bcb77', // green
+  '#ff9ff3', // pink
+];
+let colorIndex = 0;
+
+let currentBones: PetBones = makeDefaultBones('axolotl');
+
+function renderPetWeb(frame: number, actionType?: string): string {
+  // Use renderSpriteFull to preserve full 5-line height (for Electron display)
+  const sprite = renderSpriteFull(currentBones, frame);
+
+  // Blink every 10 frames when idle
+  if ((!actionType || actionType === 'idle') && frame % 10 === 0) {
+    return sprite.map(line => line.replaceAll(currentBones.eye, '-')).join('\n');
+  }
+
+  // Success: add stars on first line
+  if (actionType === 'success') {
+    return sprite.map((line, i) => i === 0 ? `✨ ${line}` : line).join('\n');
+  }
+
+  return sprite.join('\n');
+}
+
+function displayPet(frame: number, petState: PetState | null = null): void {
   const petContainer = document.getElementById('pet-container');
   const petTxt = document.getElementById('pet-txt');
 
   if (petContainer) {
-    petContainer.style.color = '#ff8800';
-    petContainer.textContent = renderPetWeb(frame);
+    petContainer.style.color = petColors[colorIndex] || '#ff8800';
+    petContainer.textContent = renderPetWeb(frame, petState?.type);
   }
 
   if (petTxt) {
-    const statuses = ['想睡觉了', '正在思考...', '正在回复...', '使用工具中...', '等待中...'];
-    petTxt.textContent = statuses[frame % statuses.length]!;
-    petTxt.style.color = '#ffae52';
+    const colorMap: Record<string, string> = {
+      thinking: '#ffae52',
+      working: '#4fc3f7',
+      success: '#81c784',
+      error: '#e57373',
+      idle: '#ffb74d',
+      reading: '#9575cd',
+      writing: '#f06292',
+      browsing: '#64b5f6',
+      talking: '#ffd54f',
+    };
+
+    if (petState) {
+      petTxt.textContent = petState.message || '发呆中...';
+      petTxt.style.color = colorMap[petState.type] || '#ffae52';
+    } else {
+      petTxt.textContent = '想睡觉了~';
+      petTxt.style.color = petColors[colorIndex] || '#ffb74d';
+    }
   }
 }
 
-displayPet(0)
+// ============================================================================
+// State management
+// ============================================================================
 
-// Animation loop with cleanup
+let currentPetState: PetState | null = null;
+
+function isValidSpecies(s: string): s is Species {
+  return (SPECIES as readonly string[]).includes(s);
+}
+
+// Color cycle every 3 seconds
+setInterval(() => {
+  colorIndex = (colorIndex + 1) % petColors.length;
+}, 3000);
+
+// Init: load current state
+window.electronAPI?.getCurrentPetState().then((state) => {
+  currentPetState = state;
+  displayPet(0, currentPetState);
+});
+
+// Listen for state updates
+window.electronAPI?.onPetStateUpdate((state) => {
+  currentPetState = state;
+  displayPet(0, currentPetState);
+});
+
+// Listen for config changes (species selection)
+window.electronAPI?.onPetConfigChange((config: { species: string }) => {
+  if (isValidSpecies(config.species)) {
+    currentBones = makeDefaultBones(config.species);
+  }
+  displayPet(0, currentPetState);
+});
+
+// Animation loop
 let frame = 0;
 const animationInterval = setInterval(() => {
   frame = (frame + 1) % 1000;
-  displayPet(frame);
+  displayPet(frame, currentPetState);
 }, 500);
 
 // Cleanup on page unload

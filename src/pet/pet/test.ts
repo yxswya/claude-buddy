@@ -1,5 +1,5 @@
 #!/usr/bin/env bun
-import { hatchPet, getPet } from './companion';
+import { hatchPet } from './companion';
 import { renderSprite, renderFace, renderWithEffect, renderHearts } from './sprites';
 import { getCurrentFrame, getCompactDisplay, ACTION_EMOJIS, type PetAnimationState } from './state';
 

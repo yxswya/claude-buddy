@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>宠物设置</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Consolas', 'Monaco', monospace;
+      background: #0d1117;
+      color: #c9d1d9;
+      padding: 16px;
+      min-height: 400px;
+    }
+
+    .container {
+      max-width: 460px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: #58a6ff;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #8b949e;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      background: #0d1117;
+      color: #c9d1d9;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 20px;
+    }
+
+    button {
+      flex: 1;
+      padding: 8px 16px;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      font-size: 13px;
+      font-family: inherit;
+      cursor: pointer;
+      background: #21262d;
+      color: #c9d1d9;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #30363d;
+    }
+
+    .btn-save {
+      background: #238636;
+      border-color: #238636;
+      color: white;
+    }
+
+    .btn-save:hover {
+      background: #2ea043;
+    }
+
+    .species-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .species-option {
+      background: #161b22;
+      border: 2px solid #30363d;
+      border-radius: 6px;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .species-option:hover {
+      border-color: #58a6ff;
+      background: #1c2128;
+    }
+
+    .species-option.selected {
+      border-color: #58a6ff;
+      background: #1f2937;
+    }
+
+    .species-preview {
+      font-size: 10px;
+      line-height: 1.2;
+      white-space: pre;
+      color: #c9d1d9;
+      margin-bottom: 4px;
+    }
+
+    .species-name {
+      font-size: 11px;
+      color: #8b949e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🐾 宠物设置</h1>
+
+    <div class="form-group">
+      <label>选择宠物</label>
+      <div class="species-grid" id="species-grid"></div>
+    </div>
+
+    <div class="form-group">
+      <label for="pet-name">宠物名字</label>
+      <input type="text" id="pet-name" placeholder="给宠物起个名字..." maxlength="20" />
+    </div>
+
+    <div class="button-group">
+      <button id="btn-cancel">取消</button>
+      <button class="btn-save" id="btn-save">保存</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/settings.ts"></script>
+</body>
+</html>

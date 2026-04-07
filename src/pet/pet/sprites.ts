@@ -148,6 +148,25 @@ export function renderSprite(bones: PetBones, frame = 0): string[] {
 }
 
 /**
+ * 渲染完整精灵（保留帽子槽空行，用于 Electron 显示）
+ * 与 renderSprite 相同，但不丢弃顶部空行。
+ */
+export function renderSpriteFull(bones: PetBones, frame = 0): string[] {
+  const frames = BODIES[bones.species];
+  const body = frames[frame % frames.length].map(line =>
+    line.replaceAll('{E}', bones.eye)
+  );
+  const lines = [...body];
+
+  // 如果有帽子且第 0 行为空，替换为帽子
+  if (bones.hat !== 'none' && !lines[0].trim()) {
+    lines[0] = HAT_LINES[bones.hat];
+  }
+
+  return lines;
+}
+
+/**
  * 获取物种的帧数
  */
 export function spriteFrameCount(species: Species): number {

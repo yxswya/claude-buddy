@@ -1,4 +1,5 @@
 <!doctype html>
+<!-- 宠物设置窗口 — 命名宠物 -->
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -33,6 +34,7 @@
       align-self: flex-start;
     }
 
+    /* 宠物预览 GIF */
     .pet-preview {
       width: 120px;
       height: 80px;
@@ -107,18 +109,18 @@
 </head>
 <body>
   <div class="container">
-    <h1>Pet Settings</h1>
+    <h1>宠物设置</h1>
 
-    <img class="pet-preview" src="/gifs/idle.gif" alt="pet preview" />
+    <img class="pet-preview" src="/gifs/idle.gif" alt="宠物预览" />
 
     <div class="form-group">
-      <label for="pet-name">Pet Name</label>
-      <input type="text" id="pet-name" placeholder="Name your pet..." maxlength="20" />
+      <label for="pet-name">宠物名字</label>
+      <input type="text" id="pet-name" placeholder="给宠物起个名字..." maxlength="20" />
     </div>
 
     <div class="button-group">
-      <button id="btn-cancel">Cancel</button>
-      <button class="btn-save" id="btn-save">Save</button>
+      <button id="btn-cancel">取消</button>
+      <button class="btn-save" id="btn-save">保存</button>
     </div>
   </div>
 

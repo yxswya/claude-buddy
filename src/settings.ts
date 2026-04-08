@@ -1,30 +1,36 @@
 /**
- * Pet settings page — name customization.
+ * 设置页面 — 宠物命名
  */
 
+/** 宠物配置 */
 interface PetConfig {
   name: string;
   enabled: boolean;
 }
 
+// 当前配置
 let currentConfig: PetConfig = {
   name: 'Pickles',
   enabled: true,
 };
 
+// ============================================================================
+// 配置操作
+// ============================================================================
+
+/** 从主进程加载配置 */
 async function loadConfig(): Promise<void> {
   try {
     const config = await window.electronAPI.getPetConfig();
-    if (config) {
-      currentConfig = config;
-    }
+    if (config) currentConfig = config;
   } catch (error) {
-    console.error('Failed to load config:', error);
+    console.error('加载配置失败:', error);
   }
 
   (document.getElementById('pet-name') as HTMLInputElement).value = currentConfig.name;
 }
 
+/** 保存配置并关闭窗口 */
 async function saveConfig(): Promise<void> {
   const name = (document.getElementById('pet-name') as HTMLInputElement).value.trim();
 
@@ -40,14 +46,19 @@ async function saveConfig(): Promise<void> {
     currentConfig = newConfig;
     closeWindow();
   } catch (error) {
-    console.error('Failed to save config:', error);
+    console.error('保存配置失败:', error);
     alert('保存失败');
   }
 }
 
+/** 关闭设置窗口 */
 function closeWindow(): void {
   window.electronAPI.closeSettings();
 }
+
+// ============================================================================
+// 初始化
+// ============================================================================
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadConfig();
@@ -60,6 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 });
 
+// IPC 类型声明
 declare global {
   interface Window {
     electronAPI: {

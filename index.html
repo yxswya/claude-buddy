@@ -1,8 +1,9 @@
 <!doctype html>
-<html lang="en">
+<!-- 宠物主窗口 — 150x130 透明窗口，显示 GIF + 状态文字 -->
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
-    <title>Zion Pet</title>
+    <title>桌面宠物</title>
     <style>
       * {
         margin: 0;
@@ -12,8 +13,7 @@
         -webkit-user-select: none;
       }
 
-      html,
-      body {
+      html, body {
         width: 150px;
         height: 130px;
         background: transparent;
@@ -25,7 +25,6 @@
       }
 
       body {
-        -webkit-app-region: drag;
         cursor: grab;
       }
 
@@ -33,6 +32,7 @@
         cursor: grabbing;
       }
 
+      /* 宠物 GIF（120x80 像素风格） */
       #pet-gif {
         width: 120px;
         height: 80px;
@@ -40,6 +40,7 @@
         pointer-events: none;
       }
 
+      /* 状态文字 */
       #pet-txt {
         font-size: 12px;
         color: #cccccc;
@@ -57,8 +58,8 @@
   </head>
 
   <body>
-    <img id="pet-gif" src="/gifs/idle.gif" alt="pet" />
-    <div id="pet-txt"></div>
+    <img id="pet-gif" src="/gifs/idle.gif" alt="宠物" />
+    <div id="pet-txt">空闲</div>
     <script type="module" src="/src/renderer.ts"></script>
   </body>
 </html>

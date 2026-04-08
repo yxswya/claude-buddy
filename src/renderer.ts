@@ -1,55 +1,46 @@
 /**
- * 渲染进程 — 宠物 GIF 显示、状态文字、窗口拖拽
+ * 渲染进程 — 状态精灵显示、状态文字、窗口拖拽
  */
 
-// ============================================================================
-// 类型声明
-// ============================================================================
+import type { ClaudeState, ClaudePhase, ClaudeActivity } from './types';
 
-declare global {
-  interface Window {
-    electronAPI: {
-      getCurrentPetState: () => Promise<PetState | null>;
-      onPetStateUpdate: (callback: (state: PetState) => void) => void;
-      dragWindow: (dx: number, dy: number) => void;
-    };
-  }
-}
-
-/** 宠物状态 */
-interface PetState {
-  timestamp: string;
-  type: 'thinking' | 'working' | 'success' | 'error' | 'idle' | 'reading' | 'writing' | 'browsing' | 'talking';
-  message: string;
-}
+// Window.electronAPI 类型声明见 electron-api.d.ts
 
 // ============================================================================
-// 状态 → GIF 映射
+// 状态 → GIF 映射（phase + activity → 精灵动画）
 // ============================================================================
 
-const STATE_GIFS: Record<string, string> = {
+/** 按 phase 选择主动画，部分 activity 有专属动画 */
+const PHASE_GIFS: Record<ClaudePhase, string> = {
   idle: '/gifs/idle.gif',
-  thinking: '/gifs/writing.gif',
-  working: '/gifs/working.gif',
-  reading: '/gifs/idle.gif',
-  writing: '/gifs/writing.gif',
-  browsing: '/gifs/browsing.gif',
-  talking: '/gifs/talking.gif',
-  success: '/gifs/success.gif',
+  thinking: '/gifs/thinking.gif',
+  executing: '/gifs/executing.gif',
+  waiting: '/gifs/waiting.gif',
+  compacting: '/gifs/compacting.gif',
   error: '/gifs/error.gif',
 };
 
-/** 状态文字颜色 */
-const STATE_COLORS: Record<string, string> = {
-  thinking: '#ffae52',
-  working: '#4fc3f7',
-  success: '#81c784',
-  error: '#e57373',
+/** executing phase 下按 activity 细分的专属动画 */
+const ACTIVITY_GIFS: Partial<Record<ClaudeActivity, string>> = {
+  Read: '/gifs/executing-read.gif',
+  Grep: '/gifs/executing-read.gif',
+  Glob: '/gifs/executing-read.gif',
+  Write: '/gifs/executing-write.gif',
+  Edit: '/gifs/executing-write.gif',
+  Bash: '/gifs/executing-bash.gif',
+  WebFetch: '/gifs/executing-web.gif',
+  WebSearch: '/gifs/executing-web.gif',
+  Agent: '/gifs/executing-agent.gif',
+};
+
+/** phase 文字颜色 */
+const PHASE_COLORS: Record<ClaudePhase, string> = {
   idle: '#ffb74d',
-  reading: '#9575cd',
-  writing: '#f06292',
-  browsing: '#64b5f6',
-  talking: '#ffd54f',
+  thinking: '#ffae52',
+  executing: '#4fc3f7',
+  waiting: '#ce93d8',
+  compacting: '#80cbc4',
+  error: '#e57373',
 };
 
 // ============================================================================
@@ -59,22 +50,19 @@ const STATE_COLORS: Record<string, string> = {
 const petGif = document.getElementById('pet-gif') as HTMLImageElement;
 const petTxt = document.getElementById('pet-txt') as HTMLDivElement;
 
-/** 当前显示的状态类型（用于检测变化） */
-let currentType = 'idle';
+/** 当前显示的 phase（用于检测变化） */
+let currentPhase: ClaudePhase = 'idle';
 
 /**
  * 自动回落计时器。
- *
- * Claude Code hooks 是一次性命令，没有 "Claude 正在思考" 的事件。
- * PostToolUse 触发后，到下一个事件之间有空白期。
- * 因此 success/error 状态显示 3 秒后自动回落到 idle。
+ * error 是瞬时状态，显示 3 秒后自动回落到 idle。
+ * （Claude 的 error 事件后会继续工作或由 Stop 事件接管，所以不需要一直显示错误动画）
  */
 let fallbackTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** 需要自动回落的瞬时状态 */
-const TRANSIENT_STATES = new Set(['success', 'error']);
+const TRANSIENT_PHASES = new Set<ClaudePhase>(['error']);
 
-/** 重置回落计时器 */
 function resetFallback(): void {
   if (fallbackTimer) {
     clearTimeout(fallbackTimer);
@@ -82,15 +70,14 @@ function resetFallback(): void {
   }
 }
 
-/** 启动回落计时器（3 秒后回到 idle） */
 function startFallback(): void {
   resetFallback();
   fallbackTimer = setTimeout(() => {
-    currentType = 'idle';
-    if (petGif) petGif.src = STATE_GIFS.idle!;
+    currentPhase = 'idle';
+    if (petGif) petGif.src = PHASE_GIFS.idle;
     if (petTxt) {
       petTxt.textContent = '空闲';
-      petTxt.style.color = STATE_COLORS.idle;
+      petTxt.style.color = PHASE_COLORS.idle;
     }
   }, 3000);
 }
@@ -99,27 +86,32 @@ function startFallback(): void {
 // 显示更新
 // ============================================================================
 
-/** 根据宠物状态切换 GIF 和文字 */
-function displayPet(state: PetState | null): void {
-  const type = state?.type || 'idle';
+/** 根据 phase + activity 选择 GIF */
+function selectGif(phase: ClaudePhase, activity: ClaudeActivity): string {
+  if (phase === 'executing' && ACTIVITY_GIFS[activity]) {
+    return ACTIVITY_GIFS[activity]!;
+  }
+  return PHASE_GIFS[phase];
+}
 
-  // 收到新事件时重置回落计时器
+/** 根据 Claude 状态切换精灵和文字 */
+function displayPet(state: ClaudeState | null): void {
+  const phase = state?.phase || 'idle';
+  const activity = state?.activity || 'other';
+
   resetFallback();
 
-  // 状态变化时切换 GIF（切换 src 会重新播放动画）
-  if (type !== currentType && petGif) {
-    currentType = type;
-    petGif.src = STATE_GIFS[type] || STATE_GIFS.idle!;
+  if (phase !== currentPhase && petGif) {
+    currentPhase = phase;
+    petGif.src = selectGif(phase, activity);
   }
 
-  // 更新状态文字
   if (petTxt) {
     petTxt.textContent = state?.message || '空闲';
-    petTxt.style.color = STATE_COLORS[type] ?? '#ffb74d';
+    petTxt.style.color = PHASE_COLORS[phase];
   }
 
-  // 瞬时状态（success/error）3 秒后自动回落到 idle
-  if (TRANSIENT_STATES.has(type)) {
+  if (TRANSIENT_PHASES.has(phase)) {
     startFallback();
   }
 }
@@ -128,14 +120,11 @@ function displayPet(state: PetState | null): void {
 // 状态监听
 // ============================================================================
 
-// 初始化：获取当前状态
-window.electronAPI?.getCurrentPetState().then(state => displayPet(state));
-
-// 监听实时状态更新
-window.electronAPI?.onPetStateUpdate(state => displayPet(state));
+window.electronAPI?.getCurrentClaudeState().then((state) => displayPet(state));
+window.electronAPI?.onClaudeStateUpdate((state) => displayPet(state));
 
 // ============================================================================
-// 窗口拖拽（通过 IPC 传递鼠标偏移量给主进程）
+// 窗口拖拽
 // ============================================================================
 
 let dragStart: { screenX: number; screenY: number } | null = null;

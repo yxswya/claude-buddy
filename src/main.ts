@@ -7,29 +7,13 @@ import path from 'node:path';
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import started from 'electron-squirrel-startup';
-
-// ============================================================================
-// 类型定义
-// ============================================================================
-
-/** 宠物状态（由 hook-sender 通过 HTTP POST 发送） */
-interface PetState {
-  timestamp: string;
-  type: 'thinking' | 'working' | 'success' | 'error' | 'idle' | 'reading' | 'writing' | 'browsing' | 'talking';
-  message: string;
-}
-
-/** 宠物配置（持久化到 userData） */
-interface PetConfig {
-  name: string;
-  enabled: boolean;
-}
+import type { ClaudeState, PetConfig } from './types';
 
 // ============================================================================
 // 全局状态
 // ============================================================================
 
-let currentPetState: PetState | null = null;
+let currentClaudeState: ClaudeState | null = null;
 let httpServer: ReturnType<typeof createServer> | null = null;
 let tray: Tray | null = null;
 let mainWindow: BrowserWindow | null = null;
@@ -79,8 +63,8 @@ function savePetConfig(config: PetConfig): void {
 const STATE_PORT = 21345;
 
 /** 广播宠物状态到所有渲染进程 */
-function broadcastState(state: PetState): void {
-  currentPetState = state;
+function broadcastState(state: ClaudeState): void {
+  currentClaudeState = state;
   BrowserWindow.getAllWindows().forEach(win => {
     win.webContents.send('pet-state-update', state);
   });
@@ -98,11 +82,11 @@ function readBody(req: IncomingMessage): Promise<string> {
 /** 启动 HTTP 状态服务 */
 function startStateServer(): void {
   httpServer = createServer(async (req: IncomingMessage, res: ServerResponse) => {
-    // POST /state — 接收 hook-sender 推送的宠物状态
+    // POST /state — 接收 hook-sender 推送的 Claude 状态
     if (req.method === 'POST' && req.url === '/state') {
       try {
         const body = await readBody(req);
-        const state = JSON.parse(body) as PetState;
+        const state = JSON.parse(body) as ClaudeState;
         broadcastState(state);
         res.writeHead(200, { 'Content-Type': 'application/json' });
         res.end('{"ok":true}');
@@ -116,7 +100,7 @@ function startStateServer(): void {
     // GET /state — 返回当前状态（调试用）
     if (req.method === 'GET' && req.url === '/state') {
       res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify(currentPetState));
+      res.end(JSON.stringify(currentClaudeState));
       return;
     }
 
@@ -271,8 +255,8 @@ app.on('before-quit', () => {
 // IPC 通信处理
 // ============================================================================
 
-/** 获取当前宠物状态 */
-ipcMain.handle('get-current-pet-state', () => currentPetState);
+/** 获取当前 Claude 状态 */
+ipcMain.handle('get-current-pet-state', () => currentClaudeState);
 
 /** 获取宠物配置 */
 ipcMain.handle('get-pet-config', () => getPetConfig());

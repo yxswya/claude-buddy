@@ -3,29 +3,17 @@
  */
 
 import { contextBridge, ipcRenderer } from 'electron';
-
-/** 宠物状态 */
-interface PetState {
-  timestamp: string;
-  type: 'thinking' | 'working' | 'success' | 'error' | 'idle' | 'reading' | 'writing' | 'browsing' | 'talking';
-  message: string;
-}
-
-/** 宠物配置 */
-interface PetConfig {
-  name: string;
-  enabled: boolean;
-}
+import type { ClaudeState, PetConfig } from './types';
 
 // 向渲染进程暴露 IPC 接口
 contextBridge.exposeInMainWorld('electronAPI', {
-  /** 获取当前宠物状态 */
-  getCurrentPetState: (): Promise<PetState | null> =>
+  /** 获取当前 Claude 状态 */
+  getCurrentClaudeState: (): Promise<ClaudeState | null> =>
     ipcRenderer.invoke('get-current-pet-state'),
 
-  /** 监听宠物状态更新 */
-  onPetStateUpdate: (callback: (state: PetState) => void): void => {
-    ipcRenderer.on('pet-state-update', (_event, state) => callback(state as PetState));
+  /** 监听 Claude 状态更新 */
+  onClaudeStateUpdate: (callback: (state: ClaudeState) => void): void => {
+    ipcRenderer.on('pet-state-update', (_event, state) => callback(state as ClaudeState));
   },
 
   /** 监听宠物配置变化 */

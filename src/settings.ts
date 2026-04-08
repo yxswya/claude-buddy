@@ -2,11 +2,9 @@
  * 设置页面 — 宠物命名
  */
 
-/** 宠物配置 */
-interface PetConfig {
-  name: string;
-  enabled: boolean;
-}
+import type { PetConfig } from './types';
+
+// Window.electronAPI 类型声明见 electron-api.d.ts
 
 // 当前配置
 let currentConfig: PetConfig = {
@@ -70,14 +68,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Escape') closeWindow();
   });
 });
-
-// IPC 类型声明
-declare global {
-  interface Window {
-    electronAPI: {
-      getPetConfig: () => Promise<PetConfig>;
-      savePetConfig: (config: PetConfig) => Promise<{ success: boolean }>;
-      closeSettings: () => void;
-    };
-  }
-}

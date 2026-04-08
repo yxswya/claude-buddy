@@ -66,6 +66,28 @@
         ]
       }
     ],
+    "PermissionRequest": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" PermissionRequest"
+          }
+        ]
+      }
+    ],
+    "PermissionDenied": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" PermissionDenied"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "matcher": "",
@@ -143,17 +165,6 @@
         ]
       }
     ],
-    "PermissionDenied": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" PermissionDenied"
-          }
-        ]
-      }
-    ],
     "TaskCreated": [
       {
         "matcher": "",
@@ -216,6 +227,61 @@
           {
             "type": "command",
             "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" TeammateIdle"
+          }
+        ]
+      }
+    ],
+    "FileChanged": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" FileChanged"
+          }
+        ]
+      }
+    ],
+    "WorktreeCreate": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" WorktreeCreate"
+          }
+        ]
+      }
+    ],
+    "WorktreeRemove": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" WorktreeRemove"
+          }
+        ]
+      }
+    ],
+    "Elicitation": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" Elicitation"
+          }
+        ]
+      }
+    ],
+    "ElicitationResult": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun \"x:\\桌面宠物-claude\\claude-buddy\\src\\pet\\hook-sender.ts\" ElicitationResult"
           }
         ]
       }
